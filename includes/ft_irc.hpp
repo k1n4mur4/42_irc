@@ -4,6 +4,7 @@
 #include "utils.hpp"
 
 #include <iostream>
+#include <string>
 
 # define __FT_IRC_VERSION__ "1.0.0"
 
