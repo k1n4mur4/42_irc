@@ -12,8 +12,14 @@ endif
 #? Compiler and Linker
 NAME		:= ircserv
 CXX			:= c++
-CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic
 RM			:= rm -rf
+
+#? Compiler Flags (btop-style split)
+REQFLAGS	:= -std=c++98
+WARNFLAGS	:= -Wall -Wextra -Werror -pedantic
+OPTFLAGS	:=
+LDFLAGS		:=
+CXXFLAGS	:= $(REQFLAGS) $(WARNFLAGS) $(OPTFLAGS)
 
 #? Git and compiler info for config.h
 GIT_COMMIT			:= $(shell git rev-parse --short HEAD 2>/dev/null || echo "")
@@ -21,13 +27,14 @@ CONFIGURE_COMMAND	:= $(MAKE)
 override CXX_VERSION := $(shell $(CXX) -dumpfullversion -dumpversion 2>/dev/null || echo "unknown")
 
 #? Detect PLATFORM and ARCH
-PLATFORM	?= $(shell uname -s || echo unknown)
 ARCH		?= $(shell uname -m || echo unknown)
 
 ifeq ($(shell uname -s),Darwin)
+	PLATFORM		:= macOS
 	PLATFORM_DIR	:= osx
 	THREADS			:= $(shell sysctl -n hw.ncpu || echo 1)
 else
+	PLATFORM		:= $(shell uname -s || echo unknown)
 	PLATFORM_DIR	:= linux
 	THREADS			:= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
 endif
@@ -85,7 +92,11 @@ info:
 	@printf "\033[1;96mARCH         \033[1;93m?| \033[0m$(ARCH)\n"
 	@printf "\033[1;93mCXX          \033[1;93m?| \033[0m$(CXX) \033[1;93m(\033[97m$(CXX_VERSION)\033[93m)\n"
 	@printf "\033[1;94mTHREADS      \033[1;94m:| \033[0m$(THREADS)\n"
-	@printf "\033[1;91mCXXFLAGS     \033[1;94m:| \033[0m$(CXXFLAGS)\n"
+	@printf "\033[1;91mREQFLAGS     \033[1;91m!| \033[0m$(REQFLAGS)\n"
+	@printf "\033[1;93mWARNFLAGS    \033[1;94m:| \033[0m$(WARNFLAGS)\n"
+	@printf "\033[1;95mOPTFLAGS     \033[1;94m:| \033[0m$(if $(OPTFLAGS),$(OPTFLAGS),(none))\n"
+	@printf "\033[1;96mLDFLAGS      \033[1;94m:| \033[0m$(if $(LDFLAGS),$(LDFLAGS),(none))\n"
+	@printf '\033[1;97mCXXFLAGS     \033[1;92m+| \033[0m$$(REQFLAGS) $$(WARNFLAGS) $$(OPTFLAGS)\n'
 	@printf "\033[1;95mINCLUDES     \033[1;92m+| \033[0m$(INC)\n"
 	@printf "\n\033[1;92mBuilding $(NAME) \033[91m(\033[97mv$(VERSION)\033[91m) \033[93m$(PLATFORM) \033[96m$(ARCH)\033[0m\n\n"
 else
@@ -111,6 +122,7 @@ directories:
 	@mkdir -p $(TARGETDIR)
 	@$(VERBOSE) || printf "mkdir -p $(BUILDDIR)/$(PLATFORM_DIR)\n"
 	@mkdir -p $(BUILDDIR)/$(PLATFORM_DIR)
+	@echo 0 > $(BUILDDIR)/.progress_count
 
 #? Generate config.h from template
 config.h: $(BUILDDIR)/config.h
@@ -128,8 +140,8 @@ $(BUILDDIR)/config.h: $(SRCDIR)/config.h.in | directories
 $(TARGETDIR)/$(NAME): $(OBJECTS) | directories
 	@TSTAMP=$$(date +%s 2>/dev/null || echo "0")
 	@$(QUIET) || printf "\033[1;92mLinking and creating binary\033[37m...\033[0m\n"
-	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) -o $@ $^\n"
-	@$(CXX) $(CXXFLAGS) -o $@ $^ || exit 1
+	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^\n"
+	@$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ || exit 1
 	@printf "\033[1;92m100$(P) -> \033[1;37m$@ \033[1;93m(\033[1;97m$$(du -h $@ | cut -f1)\033[1;93m)\033[0m\n"
 
 #? Compile
@@ -139,7 +151,10 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT) | directories config.h
 	@$(QUIET) || printf "\033[1;97mCompiling $<\033[0m\n"
 	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<\n"
 	@$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $< || exit 1
-	@PROGRESS=$$(find $(BUILDDIR) -type f -name '*.o' 2>/dev/null | wc -l | tr -d ' '); \
+	@while ! mkdir $(BUILDDIR)/.progress_lock 2>/dev/null; do sleep 0.01; done; \
+	PROGRESS=$$(( $$(cat $(BUILDDIR)/.progress_count) + 1 )); \
+	echo $$PROGRESS > $(BUILDDIR)/.progress_count; \
+	rmdir $(BUILDDIR)/.progress_lock; \
 	PERCENT=$$((PROGRESS * 100 / $(SOURCE_COUNT))); \
 	printf "\033[1;92m%3d$(P) -> \033[1;37m$@\033[0m\n" $$PERCENT
 
