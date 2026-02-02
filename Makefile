@@ -1,89 +1,162 @@
-NAME		=	ircserv
-CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98
-RM			=	rm -rf
-MAKEFLAGS	+=	--no-print-directory
+#* ft_irc makefile v1.0
 
-# OS detection
-UNAME_S		=	$(shell uname -s)
-ifeq ($(UNAME_S), Darwin)
-	OS_DIR	=	./macos
-else
-	OS_DIR	=	./linux
+BANNER  = \n \033[38;5;51m██\033[38;5;240m╗ \033[38;5;51m██████\033[38;5;240m╗  \033[38;5;51m██████\033[38;5;240m╗\n \033[38;5;45m██\033[38;5;239m║ \033[38;5;45m██\033[38;5;239m╔══\033[38;5;45m██\033[38;5;239m╗\033[38;5;45m██\033[38;5;239m╔════╝\n \033[38;5;39m██\033[38;5;238m║ \033[38;5;39m██████\033[38;5;238m╔╝\033[38;5;39m██\033[38;5;238m║     \n \033[38;5;33m██\033[38;5;237m║ \033[38;5;33m██\033[38;5;237m╔══\033[38;5;33m██\033[38;5;237m╗\033[38;5;33m██\033[38;5;237m║     \n \033[38;5;27m██\033[38;5;236m║ \033[38;5;27m██\033[38;5;236m║  \033[38;5;27m██\033[38;5;236m║╚\033[38;5;27m██████\033[38;5;236m╗\n \033[38;5;235m╚═╝ ╚═╝  ╚═╝ ╚═════╝ \033[1;3;38;5;240mft_irc v1.0\033[0m\n
+
+override VERSION := $(shell head -n100 src/ft_irc.cpp 2>/dev/null | grep "Version =" | cut -f2 -d'"' || echo "unknown")
+override TIMESTAMP := $(shell date +%s 2>/dev/null || echo "0")
+
+ifneq ($(QUIET),true)
+	override QUIET := false
 endif
 
-######################### Directories #########################
-SRCS_DIR	=	./srcs
+#? Compiler and Linker
+NAME		:= ircserv
+CXX			:= c++
+CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic
+RM			:= rm -rf
 
-######################### Sources #########################
-OS_SRCS		=	$(OS_DIR)/os.cpp
+#? Git and compiler info for config.h
+GIT_COMMIT			:= $(shell git rev-parse --short HEAD 2>/dev/null || echo "")
+CONFIGURE_COMMAND	:= $(MAKE)
+override CXX_VERSION := $(shell $(CXX) -dumpfullversion -dumpversion 2>/dev/null || echo "unknown")
 
-### Common
-SRCS		=	$(SRCS_DIR)/main.cpp
-SRCS		+=	$(SRCS_DIR)/help.cpp
-SRCS		+=	$(OS_SRCS)
+#? Detect PLATFORM and ARCH
+PLATFORM	?= $(shell uname -s || echo unknown)
+ARCH		?= $(shell uname -m || echo unknown)
 
-######################### Objects #########################
-OBJS_DIR	=	./objs
+ifeq ($(shell uname -s),Darwin)
+	PLATFORM_DIR	:= osx
+	THREADS			:= $(shell sysctl -n hw.ncpu || echo 1)
+else
+	PLATFORM_DIR	:= linux
+	THREADS			:= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
+endif
 
-# Convert both SRCS_DIR and OS_DIR paths to OBJS_DIR
-OBJS		=	$(patsubst $(SRCS_DIR)/%.cpp,$(OBJS_DIR)/%.o,$(filter $(SRCS_DIR)/%.cpp,$(SRCS))) \
-				$(patsubst $(OS_DIR)/%.cpp,$(OBJS_DIR)/os_%.o,$(filter $(OS_DIR)/%.cpp,$(SRCS)))
+ifeq ($(shell command -v gdate >/dev/null; echo $$?),0)
+	DATE_CMD := gdate
+else
+	DATE_CMD := date
+endif
 
-######################### Includes #########################
-INCLUDES	=	-I ./includes
+#? Use all CPU cores
+MAKEFLAGS	+= --jobs=$(THREADS) --no-print-directory
 
-######################### UI/UX #########################
-### Progress Bar
-TOTAL		:=	$(words $(SRCS))
-CURRENT		:=	0
-define show_progress
-	$(eval CURRENT=$(shell echo $$(($(CURRENT)+1))))
-	@if [ $(CURRENT) -eq 1 ]; then \
-		printf "Compiling sources for $(NAME)...\n"; \
-	fi
-	@WIDTH=$$(if [ "$${COLUMNS:-0}" -gt 0 ]; then echo $$COLUMNS; else tput cols 2>/dev/null || echo 80; fi); \
-	BAR_WIDTH=$$((WIDTH - 20)); \
-	if [ $$BAR_WIDTH -lt 10 ]; then BAR_WIDTH=10; fi; \
-	FILLED=$$(($(CURRENT) * BAR_WIDTH / $(TOTAL))); \
-	BAR=""; \
-	for i in $$(seq 1 $$BAR_WIDTH); do \
-		if [ $$i -le $$FILLED ]; then \
-			BAR="$${BAR}="; \
-		else \
-			BAR="$${BAR} "; \
-		fi; \
-	done; \
-	printf "\r[%s] %d/%d (%d%%)  " "$$BAR" $(CURRENT) $(TOTAL) $$(($(CURRENT) * 100 / $(TOTAL)))
-endef
+ifeq ($(VERBOSE),true)
+	override VERBOSE := false
+else
+	override VERBOSE := true
+endif
 
-######################### Targets #########################
-all: $(NAME)
+#? The Directories, Source, Objects
+SRCDIR		:= src
+BUILDDIR	:= obj
+TARGETDIR	:= bin
+SRCEXT		:= cpp
+OBJEXT		:= o
 
-$(NAME): $(OBJS)
-	@echo "\nLinking..."
-	@$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
-	@echo "Build complete! Executable: $(NAME)"
+#? Sources and Objects
+SOURCES		:= $(sort $(wildcard $(SRCDIR)/*.$(SRCEXT)))
+SOURCES		+= $(sort $(wildcard $(SRCDIR)/$(PLATFORM_DIR)/*.$(SRCEXT)))
 
-$(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	$(call show_progress)
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+OBJECTS		:= $(patsubst $(SRCDIR)/%.$(SRCEXT),$(BUILDDIR)/%.$(OBJEXT),$(SOURCES))
 
-$(OBJS_DIR)/os_%.o: $(OS_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	$(call show_progress)
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+#? Includes (btop-style: src/ for headers, obj/ for generated config.h)
+INC			:= -I $(SRCDIR) -I $(BUILDDIR)
 
+#? Setup percentage progress
+SOURCE_COUNT := $(words $(SOURCES))
+P := %%
+
+ifeq ($(VERBOSE),true)
+	override SUPPRESS := > /dev/null 2> /dev/null
+else
+	override SUPPRESS :=
+endif
+
+#? Default Make
+.ONESHELL:
+all: | info directories config.h $(TARGETDIR)/$(NAME)
+	@printf "\n\033[1;92mBuild complete in \033[92m(\033[97m$$($(DATE_CMD) -d @$$(expr $$(date +%s 2>/dev/null || echo "0") - $(TIMESTAMP) 2>/dev/null) -u +%Mm:%Ss 2>/dev/null | sed 's/^00m://' || echo "unknown")\033[92m)\033[0m\n"
+
+ifneq ($(QUIET),true)
+info:
+	@printf " $(BANNER)\n"
+	@printf "\033[1;92mPLATFORM     \033[1;93m?| \033[0m$(PLATFORM)\n"
+	@printf "\033[1;96mARCH         \033[1;93m?| \033[0m$(ARCH)\n"
+	@printf "\033[1;93mCXX          \033[1;93m?| \033[0m$(CXX) \033[1;93m(\033[97m$(CXX_VERSION)\033[93m)\n"
+	@printf "\033[1;94mTHREADS      \033[1;94m:| \033[0m$(THREADS)\n"
+	@printf "\033[1;91mCXXFLAGS     \033[1;94m:| \033[0m$(CXXFLAGS)\n"
+	@printf "\033[1;95mINCLUDES     \033[1;92m+| \033[0m$(INC)\n"
+	@printf "\n\033[1;92mBuilding $(NAME) \033[91m(\033[97mv$(VERSION)\033[91m) \033[93m$(PLATFORM) \033[96m$(ARCH)\033[0m\n\n"
+else
+info:
+	@true
+endif
+
+help:
+	@printf " $(BANNER)\n"
+	@printf "\033[1;97mft_irc makefile\033[0m\n"
+	@printf "usage: make [target]\n\n"
+	@printf "\033[1;4mTargets:\033[0m\n"
+	@printf "  \033[1mall\033[0m          Compile $(NAME) (default)\n"
+	@printf "  \033[1mclean\033[0m        Remove built objects\n"
+	@printf "  \033[1mfclean\033[0m       Remove built objects and binary\n"
+	@printf "  \033[1mre\033[0m           Rebuild from scratch\n"
+	@printf "  \033[1minfo\033[0m         Display build information\n"
+	@printf "  \033[1mhelp\033[0m         Show this help message\n"
+
+#? Make the Directories
+directories:
+	@$(VERBOSE) || printf "mkdir -p $(TARGETDIR)\n"
+	@mkdir -p $(TARGETDIR)
+	@$(VERBOSE) || printf "mkdir -p $(BUILDDIR)/$(PLATFORM_DIR)\n"
+	@mkdir -p $(BUILDDIR)/$(PLATFORM_DIR)
+
+#? Generate config.h from template
+config.h: $(BUILDDIR)/config.h
+
+$(BUILDDIR)/config.h: $(SRCDIR)/config.h.in | directories
+	@$(QUIET) || printf "\033[1mConfiguring $(BUILDDIR)/config.h\033[0m\n"
+	@sed -e 's|@GIT_COMMIT@|$(GIT_COMMIT)|g' \
+	     -e 's|@CONFIGURE_COMMAND@|$(CONFIGURE_COMMAND)|g' \
+	     -e 's|@COMPILER@|$(CXX)|g' \
+	     -e 's|@COMPILER_VERSION@|$(CXX_VERSION)|g' \
+	     $< > $@
+
+#? Link
+.ONESHELL:
+$(TARGETDIR)/$(NAME): $(OBJECTS) | directories
+	@TSTAMP=$$(date +%s 2>/dev/null || echo "0")
+	@$(QUIET) || printf "\033[1;92mLinking and creating binary\033[37m...\033[0m\n"
+	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) -o $@ $^\n"
+	@$(CXX) $(CXXFLAGS) -o $@ $^ || exit 1
+	@printf "\033[1;92m100$(P) -> \033[1;37m$@ \033[1;93m(\033[1;97m$$(du -h $@ | cut -f1)\033[1;93m)\033[0m\n"
+
+#? Compile
+.ONESHELL:
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT) | directories config.h
+	@TSTAMP=$$(date +%s 2>/dev/null || echo "0")
+	@$(QUIET) || printf "\033[1;97mCompiling $<\033[0m\n"
+	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<\n"
+	@$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $< || exit 1
+	@PROGRESS=$$(find $(BUILDDIR) -type f -name '*.o' 2>/dev/null | wc -l | tr -d ' '); \
+	PERCENT=$$((PROGRESS * 100 / $(SOURCE_COUNT))); \
+	printf "\033[1;92m%3d$(P) -> \033[1;37m$@\033[0m\n" $$PERCENT
+
+#? Clean only Objects
 clean:
-	@echo "Cleaning up..."
-	@$(RM) $(OBJS_DIR)
-	@echo "Clean objects complete."
+	@printf "\033[1;91mRemoving: \033[1;97mbuilt objects...\033[0m\n"
+	@$(RM) $(BUILDDIR)
+	@printf "\033[1;92mClean complete.\033[0m\n"
 
+#? Clean Objects and Binary
 fclean: clean
-	@$(RM) $(NAME)
-	@echo "Clean all complete."
+	@printf "\033[1;91mRemoving: \033[1;97m$(TARGETDIR)/...\033[0m\n"
+	@$(RM) $(TARGETDIR)
+	@printf "\033[1;92mFull clean complete.\033[0m\n"
 
+#? Rebuild
 re: fclean all
 
-.PHONY: all clean fclean re
+#? Non-File Targets
+.PHONY: all clean fclean re info help directories config.h
