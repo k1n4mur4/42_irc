@@ -2,5 +2,5 @@
 
 int	common(int r) {
 	(void)r;
-	return __MACH__;
+	return __aarch64__;
 }
