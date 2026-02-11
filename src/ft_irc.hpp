@@ -1,14 +1,14 @@
 # ifndef FT_IRC_HPP
 # define FT_IRC_HPP
 
-#include "utils.hpp"
-
 #include <iostream>
 #include <string>
+#include "server.hpp"
+#include "client.hpp"
 
 // Global namespace
 namespace Global {
-	const std::string Version = "1.0.0";
+	const std::string Version = "26.2.11";
 	const std::string ServerName = "ft_irc";
 
 	struct BannerLine {
@@ -26,11 +26,17 @@ namespace Global {
 		{0, 0}
 	};
 
-	void print_banner();
-}
+	inline void print_banner() {
+		const char* reset = "\033[0m";
+		const char* dim = "\033[2;3;38;5;240m";
 
-// Main entry point
-int	ft_irc_main(int argc, char** argv);
+		for (int i = 0; Banner[i].text; ++i) {
+			std::cout << Banner[i].color << Banner[i].text << reset << std::endl;
+		}
+		std::cout << dim << "                      v" << Version << reset << std::endl;
+		std::cout << std::endl;
+	}
+}
 
 // CLI namespace
 namespace Cli {
@@ -42,5 +48,8 @@ namespace Cli {
 
 	Config parse(int argc, char** argv);
 }
+
+// Main entry point
+int	ft_irc_main(int argc, char** argv);
 
 #endif

@@ -1,17 +1,7 @@
 #include "ft_irc.hpp"
+#include <cstdlib>
 
-namespace Global {
-	void print_banner() {
-		const char* reset = "\033[0m";
-		const char* dim = "\033[2;3;38;5;240m";
-
-		for (int i = 0; Banner[i].text; ++i) {
-			std::cout << Banner[i].color << Banner[i].text << reset << std::endl;
-		}
-		std::cout << dim << "                      v" << Version << reset << std::endl;
-		std::cout << std::endl;
-	}
-}
+bool Server::signal_ = false;
 
 int	ft_irc_main(int argc, char** argv) {
 	Cli::Config config = Cli::parse(argc, argv);
@@ -19,6 +9,22 @@ int	ft_irc_main(int argc, char** argv) {
 		return (EXIT_FAILURE);
 	}
 	Global::print_banner();
-	// TODO: Start IRC server with config.port and config.password
+
+	Server ser = Server(config.port, config.password);
+
+	std::cout << "---- SERVER ----" << std::endl;
+
+	try{
+		signal(SIGINT, Server::signalHandler);
+		signal(SIGQUIT, Server::signalHandler);
+		ser.ServerInit();
+	}
+	catch(const std::exception& e){
+		ser.closeFds();
+		std::cerr << e.what() << std::endl;
+	}
+
+	std::cout << "The Server Closed!" << std::endl;
+
 	return (EXIT_SUCCESS);
 }
