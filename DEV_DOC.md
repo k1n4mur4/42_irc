@@ -16,21 +16,17 @@ ft_irc/
     ├── ft_irc.hpp          # Main header
     ├── ft_irc.cpp          # Main logic & Global::Version
     ├── main.cpp            # Entry point
-    ├── irc_cli.hpp         # CLI declarations
     ├── irc_cli.cpp         # CLI parsing
-    ├── irc_server.hpp      # Server declarations
-    ├── irc_server.cpp      # Server socket handling
-    ├── irc_client.hpp      # Client declarations
-    ├── irc_client.cpp      # Client connection handling
-    ├── irc_channel.hpp     # Channel declarations
-    ├── irc_channel.cpp     # Channel management
-    ├── irc_command.hpp     # Command declarations
-    ├── irc_command.cpp     # IRC command processing
-    ├── irc_message.hpp     # Message parsing declarations
-    ├── irc_message.cpp     # IRC protocol message parsing
-    ├── utils.hpp           # Utility declarations
-    └── osx/                # Platform-specific
-        └── os.cpp
+    ├── server.hpp          # Server declarations
+    ├── server.cpp          # Server socket handling
+    ├── client.hpp          # Client declarations
+    ├── client.cpp          # Client connection handling
+    ├── channel.hpp         # Channel declarations (planned)
+    ├── channel.cpp         # Channel management (planned)
+    ├── command.hpp         # Command declarations (planned)
+    ├── command.cpp         # IRC command processing (planned)
+    ├── message.hpp         # Message parsing declarations (planned)
+    └── message.cpp         # IRC protocol message parsing (planned)
 ```
 
 ---
@@ -49,16 +45,16 @@ ft_irc/
 
 | File | Namespace | Description |
 |------|-----------|-------------|
-| `irc_server.cpp` | `Server` | ソケット作成, bind, listen, accept, poll/select |
-| `irc_client.cpp` | `Client` | クライアント接続管理, 認証, 切断処理 |
-| `irc_channel.cpp` | `Channel` | チャンネル作成, 参加, 退出, モード管理 |
+| `server.cpp` | - | ソケット作成, bind, listen, accept, poll |
+| `client.cpp` | - | クライアント接続管理, 切断処理 |
+| `channel.cpp` | - | チャンネル作成, 参加, 退出, モード管理 (planned) |
 
 ### Protocol Modules
 
 | File | Namespace | Description |
 |------|-----------|-------------|
-| `irc_message.cpp` | `Message` | IRCプロトコルメッセージのパース |
-| `irc_command.cpp` | `Command` | IRCコマンド実行 (NICK, JOIN, etc.) |
+| `message.cpp` | - | IRCプロトコルメッセージのパース (planned) |
+| `command.cpp` | - | IRCコマンド実行 (NICK, JOIN, etc.) (planned) |
 
 ---
 
@@ -67,89 +63,103 @@ ft_irc/
 ```cpp
 // ft_irc.hpp - Main header
 namespace Global {
-    extern const std::string Version;
+    const std::string Version = "...";
+    const std::string ServerName = "ft_irc";
+    // Banner definition, print_banner()
 }
 
-// irc_server.hpp
-namespace Server {
-    class IRCServer {
-    public:
-        IRCServer(int port, const std::string& password);
-        void run();
-        void stop();
-    private:
-        int _port;
-        std::string _password;
-        int _socket_fd;
-        std::vector<Client*> _clients;
-        std::map<std::string, Channel*> _channels;
+namespace Cli {
+    struct Config {
+        int         port;
+        std::string password;
+        bool        valid;
     };
+    Config parse(int argc, char** argv);
 }
 
-// irc_client.hpp
-namespace Client {
-    class IRCClient {
-    public:
-        IRCClient(int fd);
-        bool authenticate(const std::string& password);
-        void send(const std::string& message);
-        std::string receive();
-    private:
-        int _fd;
-        std::string _nickname;
-        std::string _username;
-        bool _authenticated;
-        std::string _buffer;
-    };
-}
+int ft_irc_main(int argc, char** argv);
 
-// irc_channel.hpp
-namespace Channel {
-    class IRCChannel {
-    public:
-        IRCChannel(const std::string& name);
-        void join(Client::IRCClient* client);
-        void part(Client::IRCClient* client);
-        void broadcast(const std::string& message, Client::IRCClient* sender);
-    private:
-        std::string _name;
-        std::string _topic;
-        std::vector<Client::IRCClient*> _members;
-        std::vector<Client::IRCClient*> _operators;
-    };
-}
+// server.hpp
+class Server {
+public:
+    Server();
+    Server(int port, std::string password);
 
-// irc_message.hpp
-namespace Message {
-    struct IRCMessage {
-        std::string prefix;
-        std::string command;
-        std::vector<std::string> params;
-    };
+    void        ServerInit();
+    void        SerSocket();
+    void        AcceptNewClient();
+    void        ReceiveNewData(int fd);
 
-    IRCMessage parse(const std::string& raw);
-    std::string build(const IRCMessage& msg);
-}
+    static void signalHandler(int signum);
 
-// irc_command.hpp
-namespace Command {
-    void execute(Server::IRCServer& server,
-                 Client::IRCClient& client,
-                 const Message::IRCMessage& msg);
+    void        setPort(int port);
+    int         getPort();
+    void        setPassword(std::string password);
+    std::string getPassword();
+    void        setSignal(bool signal);
+    bool        getSignal();
+    void        closeFds();
+    void        clearClients(int fd);
+private:
+    int                         port_;
+    std::string                 password_;
+    int                         serSocketFd_;
+    static bool                 signal_;
+    std::vector<Client>         clients_;
+    std::vector<struct pollfd>  fds_;
+};
 
-    // Individual command handlers
-    void cmd_pass(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_nick(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_user(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_join(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_part(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_privmsg(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_kick(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_invite(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_topic(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_mode(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-    void cmd_quit(Server::IRCServer& server, Client::IRCClient& client, const std::vector<std::string>& params);
-}
+// client.hpp
+class Client {
+public:
+    Client();
+    int     getFd();
+    void    setFd(int fd);
+    void    setIpAdd(std::string ipadd);
+private:
+    int         fd_;
+    std::string ip_add_;
+};
+
+// channel.hpp (planned)
+class Channel {
+public:
+    Channel(const std::string& name);
+    void join(Client* client);
+    void part(Client* client);
+    void broadcast(const std::string& message, Client* sender);
+private:
+    std::string name_;
+    std::string topic_;
+    std::vector<Client*> members_;
+    std::vector<Client*> operators_;
+};
+
+// message.hpp (planned)
+struct IRCMessage {
+    std::string prefix;
+    std::string command;
+    std::vector<std::string> params;
+};
+
+IRCMessage parse(const std::string& raw);
+std::string build(const IRCMessage& msg);
+
+// command.hpp (planned)
+void execute(Server& server, Client& client, const IRCMessage& msg);
+
+// Individual command handlers
+void cmd_pass(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_nick(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_user(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_join(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_part(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_privmsg(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_kick(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_invite(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_topic(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_mode(Server& server, Client& client, const std::vector<std::string>& params);
+void cmd_quit(Server& server, Client& client, const std::vector<std::string>& params);
 ```
 
 ---
@@ -187,12 +197,12 @@ namespace Command {
 ## Implementation Order
 
 1. **Phase 1: Server Foundation**
-   - [ ] `irc_server.cpp` - Socket creation, bind, listen
-   - [ ] `irc_client.cpp` - Client accept, fd management
+   - [x] `server.cpp` - Socket creation, bind, listen
+   - [x] `client.cpp` - Client accept, fd management
 
 2. **Phase 2: Protocol**
-   - [ ] `irc_message.cpp` - Message parsing
-   - [ ] `irc_command.cpp` - Command dispatcher
+   - [ ] `message.cpp` - Message parsing
+   - [ ] `command.cpp` - Command dispatcher
 
 3. **Phase 3: Authentication**
    - [ ] `cmd_pass()` - Password verification
@@ -200,7 +210,7 @@ namespace Command {
    - [ ] `cmd_user()` - User registration
 
 4. **Phase 4: Channels**
-   - [ ] `irc_channel.cpp` - Channel management
+   - [ ] `channel.cpp` - Channel management
    - [ ] `cmd_join()`, `cmd_part()`
    - [ ] `cmd_privmsg()` - Message routing
 
@@ -217,8 +227,6 @@ namespace Color {
     const char* BOLD           = "\033[1m";
     const char* BOLD_UNDERLINE = "\033[1;4m";
     const char* BOLD_RED       = "\033[1;31m";
-    const char* BOLD_GREEN     = "\033[1;32m";
-    const char* BOLD_YELLOW    = "\033[1;33m";
     const char* YELLOW         = "\033[33m";
     const char* RESET          = "\033[0m";
 }
