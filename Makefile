@@ -1,9 +1,7 @@
-#* ft_irc Makefile v1.6
-
-MAKEFILE_VERSION := 1.6
+MAKEFILE_VERSION := 1.0
 BANNER  = \n \033[38;5;51m██\033[38;5;240m╗ \033[38;5;51m██████\033[38;5;240m╗  \033[38;5;51m██████\033[38;5;240m╗\n \033[38;5;45m██\033[38;5;239m║ \033[38;5;45m██\033[38;5;239m╔══\033[38;5;45m██\033[38;5;239m╗\033[38;5;45m██\033[38;5;239m╔════╝\n \033[38;5;39m██\033[38;5;238m║ \033[38;5;39m██████\033[38;5;238m╔╝\033[38;5;39m██\033[38;5;238m║     \n \033[38;5;33m██\033[38;5;237m║ \033[38;5;33m██\033[38;5;237m╔══\033[38;5;33m██\033[38;5;237m╗\033[38;5;33m██\033[38;5;237m║     \n \033[38;5;27m██\033[38;5;236m║ \033[38;5;27m██\033[38;5;236m║  \033[38;5;27m██\033[38;5;236m║╚\033[38;5;27m██████\033[38;5;236m╗\n \033[38;5;235m╚═╝ ╚═╝  ╚═╝ ╚═════╝ \033[1;3;38;5;240mMakefile v$(MAKEFILE_VERSION)\033[0m\n
 
-override VERSION := $(shell head -n100 src/ft_irc.cpp 2>/dev/null | grep "Version =" | cut -f2 -d'"' || echo "unknown")
+override VERSION := $(shell head -n100 src/ft_irc.hpp 2>/dev/null | grep "Version =" | cut -f2 -d'"' || echo "unknown")
 override TIMESTAMP := $(shell date +%s 2>/dev/null || echo "0")
 
 ifneq ($(QUIET),true)
@@ -172,7 +170,8 @@ fclean: clean
 	@printf "\033[1;92mFull clean complete.\033[0m\n"
 
 #? Rebuild
-re: fclean all
+re: fclean
+	@$(MAKE) all
 
 #? Non-File Targets
 .PHONY: all clean fclean re info help directories config.h
