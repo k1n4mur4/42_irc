@@ -21,13 +21,6 @@
 
 class Server
 {
-	private:
-		int							port_;
-		std::string					password_;
-		int							serSocketFd_;
-		static bool					signal_;
-		std::vector<Client>			clients_;
-		std::vector<struct pollfd>	fds_;
 	public:
 		Server(){serSocketFd_ = -1;}
 		Server(int port, std::string password){
@@ -54,6 +47,14 @@ class Server
 		bool		getSignal(){return signal_;};
 		void		closeFds();
 		void		clearClients(int fd);
+
+	private:
+		int							port_;
+		std::string					password_;
+		int							serSocketFd_;
+		static bool					signal_;
+		std::vector<Client>			clients_;
+		std::vector<struct pollfd>	fds_;
 };
 
 #endif
