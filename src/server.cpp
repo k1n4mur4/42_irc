@@ -43,17 +43,17 @@ void	Server::SerSocket()
 
 	serSocketFd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if(serSocketFd_ == -1)
-		throw(std::runtime_error("faild to create socket"));
+		throw(std::runtime_error("failed to create socket"));
 
 	int en = 1;
 	if(setsockopt(serSocketFd_, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
-		throw(std::runtime_error("faild to set option (SO_REUSEADDR) on socket"));
+		throw(std::runtime_error("failed to set option (SO_REUSEADDR) on socket"));
 	if (fcntl(serSocketFd_, F_SETFL, O_NONBLOCK) == -1)
-		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket"));
+		throw(std::runtime_error("failed to set option (O_NONBLOCK) on socket"));
 	if (bind(serSocketFd_, (struct sockaddr *)&add, sizeof(add)) == -1)
-		throw(std::runtime_error("faild to bind socket"));
+		throw(std::runtime_error("failed to bind socket"));
 	if (listen(serSocketFd_, SOMAXCONN) == -1)
-		throw(std::runtime_error("listen() faild"));
+		throw(std::runtime_error("listen() failed"));
 
 	NewPoll.fd = serSocketFd_;
 	NewPoll.events = POLLIN;
@@ -118,7 +118,7 @@ void Server::ServerInit()
 	while (Server::signal_ == false)
 	{
 		if((poll(&fds_[0],fds_.size(),-1) == -1) && Server::signal_ == false)
-			throw(std::runtime_error("poll() faild"));
+			throw(std::runtime_error("poll() failed"));
 
 		for (size_t i = 0; i < fds_.size(); i++) {
 			if (fds_[i].revents & POLLIN) {
@@ -126,8 +126,8 @@ void Server::ServerInit()
 					AcceptNewClient();
 				else
 					ReceiveNewData(fds_[i].fd);
+			}
 		}
-}
 	}
 	closeFds();
 }
