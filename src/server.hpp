@@ -1,18 +1,21 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+#include <map>
+#include <set>
 #include <vector>
 #include <iostream>
-#include <vector>
 #include <string>
 #include <cstring>
 #include <csignal>
+#include <sstream>
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "client.hpp"
+#include "channel.hpp"
 
 #define RED "\033[1;31m"
 #define WHI "\033[0;37m"
@@ -21,13 +24,6 @@
 
 class Server
 {
-	private:
-		int							port_;
-		std::string					password_;
-		int							serSocketFd_;
-		static bool					signal_;
-		std::vector<Client>			clients_;
-		std::vector<struct pollfd>	fds_;
 	public:
 		Server(){serSocketFd_ = -1;}
 		Server(int port, std::string password){
@@ -43,9 +39,10 @@ class Server
 		void		SerSocket();
 		void		AcceptNewClient();
 		void		ReceiveNewData(int fd);
+		void		HandlePollout(int fd);
 
 		static void	signalHandler(int signum);
-	
+
 		void		setPort(int port){port_ = port;};
 		int			getPort(){return port_;};
 		void		setPassword(std::string password){password_ = password;};
@@ -54,6 +51,29 @@ class Server
 		bool		getSignal(){return signal_;};
 		void		closeFds();
 		void		clearClients(int fd);
+
+		void		SendToClient(int fd, const std::string& message);
+		void		SendReply(Client& client, const std::string& numeric,
+							 const std::string& params);
+		Client*		FindClientByFd(int fd);
+		Client*		FindClientByNick(const std::string& nick);
+		void		DisconnectClient(int fd);
+
+		Channel*	FindChannel(const std::string& name);
+		Channel*	FindOrCreateChannel(const std::string& name);
+		void		RemoveChannel(const std::string& name);
+		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
+		void		BroadcastNickChange(Client* client, const std::string& oldPrefix,
+										const std::string& newNick);
+
+	private:
+		int							port_;
+		std::string					password_;
+		int							serSocketFd_;
+		static bool					signal_;
+		std::map<int, Client>		clients_;
+		std::vector<struct pollfd>	fds_;
+		std::map<std::string, Channel>	channels_;
 };
 
 #endif

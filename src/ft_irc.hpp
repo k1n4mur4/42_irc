@@ -5,10 +5,12 @@
 #include <string>
 #include "server.hpp"
 #include "client.hpp"
+#include "message.hpp"
+#include "command.hpp"
 
 // Global namespace
 namespace Global {
-	const std::string Version = "26.2.11";
+	const std::string Version = "26.2.15";
 	const std::string ServerName = "ft_irc";
 
 	struct BannerLine {
