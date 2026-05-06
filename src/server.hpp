@@ -22,39 +22,32 @@
 #define GRE "\033[1;32m"
 #define YEL "\033[1;33m"
 
-class Server
-{
+class Server {
 	public:
-		Server(){serSocketFd_ = -1;}
-		Server(int port, std::string password){
-			port_ = port;
-			password_ = password;
-
+		Server() : port_(0), serSocketFd_(-1) {}
+		Server(int port, const std::string& password) : port_(port), password_(password) {
 			std::cout << "Server Config" << std::endl;
 			std::cout << "PORT:\t\t" << port_ << std::endl;
 			std::cout << "PASSWORD:\t" << password_ << std::endl;
 		}
 
 		void		ServerInit();
-		void		SerSocket();
-		void		AcceptNewClient();
-		void		ReceiveNewData(int fd);
-		void		HandlePollout(int fd);
 
-		static void	signalHandler(int signum);
+		static void	signalHandler(int);
 
-		void		setPort(int port){port_ = port;};
-		int			getPort(){return port_;};
-		void		setPassword(std::string password){password_ = password;};
-		std::string	getPassword(){return password_;};
-		void		setSignal(bool signal){signal_ = signal;};
-		bool		getSignal(){return signal_;};
-		void		closeFds();
-		void		clearClients(int fd);
+		void		setPort(int port) { port_ = port; };
+		int			getPort() const { return port_; };
+
+		void		setPassword(const std::string& password) { password_ = password; };
+		const std::string&	getPassword() const { return password_; };
+
+		void		setSignal(bool signal) { signal_ = signal; };
+		bool		getSignal() const { return signal_; };
+
+    void		closeFds();
 
 		void		SendToClient(int fd, const std::string& message);
-		void		SendReply(Client& client, const std::string& numeric,
-							 const std::string& params);
+		void		SendReply(Client& client, const std::string& numeric, const std::string& params);
 		Client*		FindClientByFd(int fd);
 		Client*		FindClientByNick(const std::string& nick);
 		void		DisconnectClient(int fd);
@@ -62,17 +55,24 @@ class Server
 		Channel*	FindChannel(const std::string& name);
 		Channel*	FindOrCreateChannel(const std::string& name);
 		void		RemoveChannel(const std::string& name);
-		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
-		void		BroadcastNickChange(Client* client, const std::string& oldPrefix,
-										const std::string& newNick);
+    void		BroadcastNickChange(Client* client, const std::string& oldPrefix, const std::string& newNick);
 
 	private:
+    void		SerSocket();
+		void		AcceptNewClient();
+		void		ReceiveNewData(int fd);
+		void		HandlePollout(int fd);
+
+    void		clearClients(int fd);
+
+		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
+
 		int							port_;
 		std::string					password_;
 		int							serSocketFd_;
 		static bool					signal_;
 		std::map<int, Client>		clients_;
-		std::vector<struct pollfd>	fds_;
+		std::vector<pollfd>	fds_;
 		std::map<std::string, Channel>	channels_;
 };
 
