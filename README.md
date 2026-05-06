@@ -111,6 +111,19 @@ MODE #channel +kl secret 10
 - [RFC 2812 - IRC Client Protocol](https://tools.ietf.org/html/rfc2812)
 - [Modern IRC Client Protocol](https://modern.ircdocs.horse/)
 
+### AI Usage
+
+**Code review and refactoring**  
+Reviewed implementation approaches, improving code structure, and discussing design considerations during development.
+
+**Bug detection**  
+Provided support while investigating and resolving issues encountered during development.
+
+**Documentation**  
+Assisted in structuring and drafting this README
+
+All AI-generated content and suggestions were reviewed, validated, and adapted by the project authors before integration.
+
 ## Authentication Flow
 
 ```
