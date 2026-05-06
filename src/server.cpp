@@ -108,6 +108,8 @@ void Server::ReceiveNewData(int fd) {
 			continue;
 		IRCMessage msg = Message::parse(line);
 		Command::execute(*this, *client, msg);
+    if (!FindClientByFd(fd))
+      return;
 	}
 }
 
