@@ -63,7 +63,7 @@ static void cmd_nick(Server& server, Client& client, const IRCMessage& msg)
 		server.SendReply(client, "431", ":No nickname given");
 		return;
 	}
-	std::string nick = msg.params[0];
+	const std::string nick = msg.params[0];
 	if (!isValidNick(nick)) {
 		server.SendReply(client, "432", nick + " :Erroneous nickname");
 		return;
@@ -125,7 +125,7 @@ static void cmd_ping(Server& server, Client& client, const IRCMessage& msg)
 // Channel commands
 // ============================================================
 
-static void sendNamesReply(Server& server, Client& client, Channel& channel)
+static void sendNamesReply(Server& server, Client& client, const Channel& channel)
 {
 	std::string names;
 	const std::vector<Client*>& members = channel.getMembers();
@@ -147,7 +147,7 @@ static void cmd_join(Server& server, Client& client, const IRCMessage& msg)
 		return;
 	}
 
-	std::string channels_str = msg.params[0];
+	const std::string channels_str = msg.params[0];
 	std::string keys_str;
 	if (msg.params.size() > 1)
 		keys_str = msg.params[1];
@@ -285,9 +285,9 @@ static void cmd_privmsg(Server& server, Client& client, const IRCMessage& msg)
 		return;
 	}
 
-	std::string target = msg.params[0];
-	std::string text = msg.params[1];
-	std::string privmsg = ":" + client.getPrefix() + " PRIVMSG " + target + " :" + text + "\r\n";
+	const std::string target = msg.params[0];
+	const std::string text = msg.params[1];
+	const std::string privmsg = ":" + client.getPrefix() + " PRIVMSG " + target + " :" + text + "\r\n";
 
 	if (target[0] == '#' || target[0] == '&') {
 		Channel* chan = server.FindChannel(target);
@@ -320,8 +320,8 @@ static void cmd_kick(Server& server, Client& client, const IRCMessage& msg)
 		server.SendReply(client, "461", "KICK :Not enough parameters");
 		return;
 	}
-	std::string chan_name = msg.params[0];
-	std::string target_nick = msg.params[1];
+	const std::string chan_name = msg.params[0];
+	const std::string target_nick = msg.params[1];
 	std::string reason = client.getNickname();
 	if (msg.params.size() > 2)
 		reason = msg.params[2];
@@ -360,8 +360,8 @@ static void cmd_invite(Server& server, Client& client, const IRCMessage& msg)
 		server.SendReply(client, "461", "INVITE :Not enough parameters");
 		return;
 	}
-	std::string target_nick = msg.params[0];
-	std::string chan_name = msg.params[1];
+	const std::string target_nick = msg.params[0];
+	const std::string chan_name = msg.params[1];
 
 	Channel* chan = server.FindChannel(chan_name);
 	if (!chan) {
@@ -400,7 +400,7 @@ static void cmd_topic(Server& server, Client& client, const IRCMessage& msg)
 		server.SendReply(client, "461", "TOPIC :Not enough parameters");
 		return;
 	}
-	std::string chan_name = msg.params[0];
+	const std::string chan_name = msg.params[0];
 	Channel* chan = server.FindChannel(chan_name);
 	if (!chan) {
 		server.SendReply(client, "403", chan_name + " :No such channel");
@@ -436,7 +436,7 @@ static void cmd_mode(Server& server, Client& client, const IRCMessage& msg)
 		server.SendReply(client, "461", "MODE :Not enough parameters");
 		return;
 	}
-	std::string target = msg.params[0];
+	const std::string target = msg.params[0];
 
 	// User mode query — ignore silently
 	if (target[0] != '#' && target[0] != '&')
@@ -479,7 +479,7 @@ static void cmd_mode(Server& server, Client& client, const IRCMessage& msg)
 		return;
 	}
 
-	std::string mode_str = msg.params[1];
+	const std::string mode_str = msg.params[1];
 	size_t param_idx = 2;
 	bool adding = true;
 
