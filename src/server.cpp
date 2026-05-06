@@ -27,8 +27,8 @@ void	Server::closeFds() {
 }
 
 void	Server::SerSocket() {
-	struct sockaddr_in add;
-	struct pollfd NewPoll;
+	sockaddr_in add;
+	pollfd NewPoll;
 	add.sin_family = AF_INET;
 	add.sin_port = htons(this->port_);
 	add.sin_addr.s_addr = INADDR_ANY;
@@ -55,8 +55,8 @@ void	Server::SerSocket() {
 
 void Server::AcceptNewClient() {
 	Client cli;
-	struct sockaddr_in cliadd;
-	struct pollfd NewPoll;
+	sockaddr_in cliadd;
+	pollfd NewPoll;
 	socklen_t len = sizeof(cliadd);
 
 	int incofd = accept(serSocketFd_, (sockaddr *)&(cliadd), &len);

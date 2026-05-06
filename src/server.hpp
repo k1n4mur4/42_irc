@@ -69,7 +69,7 @@ class Server {
 		int							serSocketFd_;
 		static bool					signal_;
 		std::map<int, Client>		clients_;
-		std::vector<struct pollfd>	fds_;
+		std::vector<pollfd>	fds_;
 		std::map<std::string, Channel>	channels_;
 };
 
