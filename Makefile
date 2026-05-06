@@ -31,11 +31,11 @@ ARCH		?= $(shell uname -m || echo unknown)
 ifeq ($(shell uname -s),Darwin)
 	PLATFORM		:= macOS
 	PLATFORM_DIR	:= osx
-	THREADS			:= $(shell sysctl -n hw.ncpu || echo 1)
+	THREADS			:= 1
 else
 	PLATFORM		:= $(shell uname -s || echo unknown)
 	PLATFORM_DIR	:= linux
-	THREADS			:= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
+	THREADS			:= 1
 endif
 
 ifeq ($(shell command -v gdate >/dev/null; echo $$?),0)
