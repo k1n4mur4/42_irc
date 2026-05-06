@@ -22,11 +22,10 @@
 #define GRE "\033[1;32m"
 #define YEL "\033[1;33m"
 
-class Server
-{
+class Server {
 	public:
-		Server(){serSocketFd_ = -1;}
-		Server(int port, std::string password){
+		Server() {serSocketFd_ = -1;}
+		Server(int port, std::string password) {
 			port_ = port;
 			password_ = password;
 
@@ -53,8 +52,7 @@ class Server
 		void		clearClients(int fd);
 
 		void		SendToClient(int fd, const std::string& message);
-		void		SendReply(Client& client, const std::string& numeric,
-							 const std::string& params);
+		void		SendReply(Client& client, const std::string& numeric, const std::string& params);
 		Client*		FindClientByFd(int fd);
 		Client*		FindClientByNick(const std::string& nick);
 		void		DisconnectClient(int fd);
@@ -63,8 +61,7 @@ class Server
 		Channel*	FindOrCreateChannel(const std::string& name);
 		void		RemoveChannel(const std::string& name);
 		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
-		void		BroadcastNickChange(Client* client, const std::string& oldPrefix,
-										const std::string& newNick);
+		void		BroadcastNickChange(Client* client, const std::string& oldPrefix, const std::string& newNick);
 
 	private:
 		int							port_;

@@ -1,6 +1,6 @@
 #include "ft_irc.hpp"
 
-void	Server::clearClients(int fd){
+void	Server::clearClients(int fd) {
 	for(size_t i = 0; i < fds_.size(); i++){
 		if (fds_[i].fd == fd) {
 			fds_.erase(fds_.begin() + i);
@@ -10,14 +10,13 @@ void	Server::clearClients(int fd){
 	clients_.erase(fd);
 }
 
-void	Server::signalHandler(int signum)
-{
+void	Server::signalHandler(int signum) {
 	(void)signum;
 	std::cout << std::endl << "Signal Received!" << std::endl;
 	Server::signal_ = true;
 }
 
-void	Server::closeFds(){
+void	Server::closeFds() {
 	for (std::map<int, Client>::iterator it = clients_.begin(); it != clients_.end(); ++it){
 		std::cout << RED << "Client <" << it->first << "> Disconnected" << WHI << std::endl;
 		close(it->first);
@@ -28,8 +27,7 @@ void	Server::closeFds(){
 	}
 }
 
-void	Server::SerSocket()
-{
+void	Server::SerSocket() {
 	struct sockaddr_in add;
 	struct pollfd NewPoll;
 	add.sin_family = AF_INET;
@@ -56,8 +54,7 @@ void	Server::SerSocket()
 	fds_.push_back(NewPoll);
 }
 
-void Server::AcceptNewClient()
-{
+void Server::AcceptNewClient() {
 	Client cli;
 	struct sockaddr_in cliadd;
 	struct pollfd NewPoll;
@@ -87,14 +84,13 @@ void Server::AcceptNewClient()
 	std::cout << GRE << "Client <" << incofd << "> Connected" << WHI << std::endl;
 }
 
-void Server::ReceiveNewData(int fd)
-{
+void Server::ReceiveNewData(int fd) {
 	char buff[1024];
 
 	memset(buff, 0, sizeof(buff));
 
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0);
-	if(bytes <= 0) {
+	if (bytes <= 0) {
 		DisconnectClient(fd);
 		return;
 	}
@@ -116,8 +112,7 @@ void Server::ReceiveNewData(int fd)
 	}
 }
 
-void Server::HandlePollout(int fd)
-{
+void Server::HandlePollout(int fd) {
 	Client* client = FindClientByFd(fd);
 	if (!client || !client->hasPendingData())
 		return;
@@ -128,24 +123,21 @@ void Server::HandlePollout(int fd)
 		client->eraseSendBuffer(static_cast<size_t>(sent));
 }
 
-void Server::SendToClient(int fd, const std::string& message)
-{
+void Server::SendToClient(int fd, const std::string& message) {
 	Client* client = FindClientByFd(fd);
 	if (!client)
 		return;
 	client->appendSendBuffer(message);
 }
 
-Client*	Server::FindClientByFd(int fd)
-{
+Client*	Server::FindClientByFd(int fd) {
 	std::map<int, Client>::iterator it = clients_.find(fd);
 	if (it == clients_.end())
 		return NULL;
 	return &it->second;
 }
 
-Client*	Server::FindClientByNick(const std::string& nick)
-{
+Client*	Server::FindClientByNick(const std::string& nick) {
 	for (std::map<int, Client>::iterator it = clients_.begin(); it != clients_.end(); ++it) {
 		if (it->second.getNickname() == nick)
 			return &it->second;
@@ -153,9 +145,7 @@ Client*	Server::FindClientByNick(const std::string& nick)
 	return NULL;
 }
 
-void	Server::SendReply(Client& client, const std::string& numeric,
-						  const std::string& params)
-{
+void	Server::SendReply(Client& client, const std::string& numeric, const std::string& params) {
 	std::string nick = client.getNickname();
 	if (nick.empty())
 		nick = "*";
@@ -164,8 +154,7 @@ void	Server::SendReply(Client& client, const std::string& numeric,
 	SendToClient(client.getFd(), reply);
 }
 
-void	Server::DisconnectClient(int fd)
-{
+void	Server::DisconnectClient(int fd) {
 	Client* client = FindClientByFd(fd);
 	if (client)
 		RemoveClientFromAllChannels(client, "Client disconnected");
@@ -174,16 +163,14 @@ void	Server::DisconnectClient(int fd)
 	close(fd);
 }
 
-Channel*	Server::FindChannel(const std::string& name)
-{
+Channel*	Server::FindChannel(const std::string& name) {
 	std::map<std::string, Channel>::iterator it = channels_.find(name);
 	if (it == channels_.end())
 		return NULL;
 	return &it->second;
 }
 
-Channel*	Server::FindOrCreateChannel(const std::string& name)
-{
+Channel*	Server::FindOrCreateChannel(const std::string& name) {
 	std::map<std::string, Channel>::iterator it = channels_.find(name);
 	if (it != channels_.end())
 		return &it->second;
@@ -191,18 +178,15 @@ Channel*	Server::FindOrCreateChannel(const std::string& name)
 	return &channels_[name];
 }
 
-void	Server::RemoveChannel(const std::string& name)
-{
+void	Server::RemoveChannel(const std::string& name) {
 	channels_.erase(name);
 }
 
-void	Server::RemoveClientFromAllChannels(Client* client, const std::string& quit_msg)
-{
+void	Server::RemoveClientFromAllChannels(Client* client, const std::string& quit_msg) {
 	std::string msg = ":" + client->getPrefix() + " QUIT :" + quit_msg + "\r\n";
 	std::vector<std::string> to_remove;
 
-	for (std::map<std::string, Channel>::iterator it = channels_.begin();
-		 it != channels_.end(); ++it) {
+	for (std::map<std::string, Channel>::iterator it = channels_.begin(); it != channels_.end(); ++it) {
 		if (it->second.IsMember(client)) {
 			it->second.Broadcast(msg, client);
 			it->second.RemoveMember(client);
@@ -215,13 +199,11 @@ void	Server::RemoveClientFromAllChannels(Client* client, const std::string& quit
 }
 
 void	Server::BroadcastNickChange(Client* client, const std::string& oldPrefix,
-									const std::string& newNick)
-{
+									const std::string& newNick) {
 	std::string msg = ":" + oldPrefix + " NICK " + newNick + "\r\n";
 	std::set<int> notified;
 
-	for (std::map<std::string, Channel>::iterator it = channels_.begin();
-		 it != channels_.end(); ++it) {
+	for (std::map<std::string, Channel>::iterator it = channels_.begin(); it != channels_.end(); ++it) {
 		if (it->second.IsMember(client)) {
 			const std::vector<Client*>& members = it->second.getMembers();
 			for (size_t i = 0; i < members.size(); ++i) {
@@ -235,15 +217,13 @@ void	Server::BroadcastNickChange(Client* client, const std::string& oldPrefix,
 	}
 }
 
-void Server::ServerInit()
-{
+void Server::ServerInit() {
 	SerSocket();
 
 	std::cout << GRE << "Server <" << serSocketFd_ << "> Connected" << WHI << std::endl;
 	std::cout << "Waiting to accept a connection...\n";
 
-	while (Server::signal_ == false)
-	{
+	while (Server::signal_ == false) {
 		// Set POLLOUT for clients with pending data
 		for (size_t i = 0; i < fds_.size(); i++) {
 			if (fds_[i].fd != serSocketFd_) {
@@ -255,7 +235,7 @@ void Server::ServerInit()
 			}
 		}
 
-		if((poll(&fds_[0],fds_.size(),-1) == -1) && Server::signal_ == false)
+		if ((poll(&fds_[0],fds_.size(),-1) == -1) && Server::signal_ == false)
 			throw(std::runtime_error("poll() failed"));
 
 		for (size_t i = 0; i < fds_.size(); i++) {
