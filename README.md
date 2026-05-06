@@ -1,3 +1,5 @@
+_This project has been created as part of the 42 curriculum by kinamura, sninomiy, stakada._
+
 # ft_irc
 
 An IRC server implemented in C++98 as part of the [42 School](https://42.fr/) curriculum.
