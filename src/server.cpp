@@ -239,7 +239,7 @@ void Server::ServerInit() {
 		if ((poll(&fds_[0],fds_.size(),-1) == -1) && Server::signal_ == false)
 			throw(std::runtime_error("poll() failed"));
 
-		for (size_t i = 0; i < fds_.size(); i++) {
+		for (size_t i = 0; i < fds_.size(); ) {
       const int fd = fds_[i].fd;
       const short revents = fds_[i].revents;
 
@@ -255,6 +255,8 @@ void Server::ServerInit() {
 
 			if (revents & POLLOUT)
 				HandlePollout(fd);
+      
+      ++i;
 		}
 	}
 	closeFds();
