@@ -1,9 +1,13 @@
+_This project has been created as part of the 42 curriculum by kinamura, sninomiy, stakada._
+
 # ft_irc
+
+## Description
 
 An IRC server implemented in C++98 as part of the [42 School](https://42.fr/) curriculum.
 Handles multiple concurrent clients over TCP using `poll()` for multiplexed non-blocking I/O, with RFC 1459 compliant message parsing.
 
-## Features
+### Features
 
 - **12 IRC commands** — PASS, NICK, USER, QUIT, PING, JOIN, PART, PRIVMSG, KICK, INVITE, TOPIC, MODE
 - **5 channel modes** — invite-only (`+i`), topic restriction (`+t`), channel key (`+k`), operator privilege (`+o`), user limit (`+l`)
@@ -13,13 +17,15 @@ Handles multiple concurrent clients over TCP using `poll()` for multiplexed non-
 - **Send/receive buffering** — partial data handling for fragmented TCP streams (supports `nc` + Ctrl+D)
 - **Graceful shutdown** — signal handling for SIGINT and SIGQUIT
 
-## Requirements
+### Requirements
 
 - C++ compiler with C++98 support
 - POSIX environment (macOS / Linux)
 - Make
 
-## Build
+## Instructions
+
+### Build
 
 ```bash
 make            # Build (parallel, uses all CPU cores)
@@ -30,7 +36,7 @@ make info       # Show build configuration
 make help       # Show available targets
 ```
 
-## Usage
+### Usage
 
 ```bash
 ./bin/ircserv <port> <password>
@@ -53,9 +59,9 @@ NICK mynick
 USER mynick 0 * :My Real Name
 ```
 
-## Supported Commands
+### Supported Commands
 
-### Registration
+#### Registration
 
 | Command | Syntax | Description |
 |---------|--------|-------------|
@@ -65,7 +71,7 @@ USER mynick 0 * :My Real Name
 | `QUIT` | `QUIT [:<message>]` | Disconnect from the server |
 | `PING` | `PING <token>` | Keep-alive; server responds with PONG |
 
-### Channels
+#### Channels
 
 | Command | Syntax | Description |
 |---------|--------|-------------|
@@ -73,7 +79,7 @@ USER mynick 0 * :My Real Name
 | `PART` | `PART <channel> [:<message>]` | Leave a channel |
 | `PRIVMSG` | `PRIVMSG <target> :<message>` | Send a message to a channel or user |
 
-### Operator
+#### Operator
 
 | Command | Syntax | Description |
 |---------|--------|-------------|
@@ -82,7 +88,7 @@ USER mynick 0 * :My Real Name
 | `TOPIC` | `TOPIC <channel> [:<topic>]` | Set or query the channel topic |
 | `MODE` | `MODE <channel> <modes> [<params>]` | Set or query channel modes |
 
-## Channel Modes
+### Channel Modes
 
 | Mode | Description | Parameter |
 |------|-------------|-----------|
@@ -98,6 +104,25 @@ Multiple modes can be set in a single command:
 MODE #channel +itk-o secretkey nick
 MODE #channel +kl secret 10
 ```
+
+## Resources
+
+- [RFC 1459 - Internet Relay Chat Protocol](https://tools.ietf.org/html/rfc1459)
+- [RFC 2812 - IRC Client Protocol](https://tools.ietf.org/html/rfc2812)
+- [Modern IRC Client Protocol](https://modern.ircdocs.horse/)
+
+### AI Usage
+
+**Code review and refactoring**  
+Reviewed implementation approaches, improving code structure, and discussing design considerations during development.
+
+**Bug detection**  
+Provided support while investigating and resolving issues encountered during development.
+
+**Documentation**  
+Assisted in structuring and drafting this README
+
+All AI-generated content and suggestions were reviewed, validated, and adapted by the project authors before integration.
 
 ## Authentication Flow
 
