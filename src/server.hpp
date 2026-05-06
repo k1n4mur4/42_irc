@@ -39,12 +39,12 @@ class Server {
 
 		static void	signalHandler(int);
 
-		void		setPort(int port){port_ = port;};
-		int			getPort(){return port_;};
-		void		setPassword(const std::string& password){password_ = password;};
-		const std::string&	getPassword(){return password_;};
-		void		setSignal(bool signal){signal_ = signal;};
-		bool		getSignal(){return signal_;};
+		void		setPort(int port) {port_ = port;};
+		int			getPort() {return port_;};
+		void		setPassword(const std::string& password) {password_ = password;};
+		const std::string&	getPassword() {return password_;};
+		void		setSignal(bool signal) {signal_ = signal;};
+		bool		getSignal() {return signal_;};
 		void		closeFds();
 		void		clearClients(int fd);
 
