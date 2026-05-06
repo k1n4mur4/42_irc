@@ -25,7 +25,7 @@
 class Server {
 	public:
 		Server() {serSocketFd_ = -1;}
-		Server(int port, std::string password) {
+		Server(int port, const std::string& password) {
 			port_ = port;
 			password_ = password;
 
@@ -44,8 +44,8 @@ class Server {
 
 		void		setPort(int port){port_ = port;};
 		int			getPort(){return port_;};
-		void		setPassword(std::string password){password_ = password;};
-		std::string	getPassword(){return password_;};
+		void		setPassword(const std::string& password){password_ = password;};
+		const std::string&	getPassword(){return password_;};
 		void		setSignal(bool signal){signal_ = signal;};
 		bool		getSignal(){return signal_;};
 		void		closeFds();

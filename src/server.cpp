@@ -37,7 +37,7 @@ void	Server::SerSocket() {
 	if(serSocketFd_ == -1)
 		throw(std::runtime_error("failed to create socket"));
 
-	int en = 1;
+	const int en = 1;
 	if (setsockopt(serSocketFd_, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
 		throw(std::runtime_error("failed to set option (SO_REUSEADDR) on socket"));
 	if (fcntl(serSocketFd_, F_SETFL, O_NONBLOCK) == -1)
@@ -59,7 +59,7 @@ void Server::AcceptNewClient() {
 	pollfd NewPoll;
 	socklen_t len = sizeof(cliadd);
 
-	int incofd = accept(serSocketFd_, (sockaddr *)&(cliadd), &len);
+	const int incofd = accept(serSocketFd_, (sockaddr *)&(cliadd), &len);
 	if (incofd == -1) {
 		std::cout << "accept() failed" << std::endl;
 		return;
@@ -88,7 +88,7 @@ void Server::ReceiveNewData(int fd) {
 
 	memset(buff, 0, sizeof(buff));
 
-	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0);
+	const ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0);
 	if (bytes <= 0) {
 		DisconnectClient(fd);
 		return;
@@ -103,7 +103,7 @@ void Server::ReceiveNewData(int fd) {
 
 	client->appendRecvBuffer(std::string(buff, bytes));
 	while (client->hasCompleteLine()) {
-		std::string line = client->extractLine();
+		const std::string line = client->extractLine();
 		if (line.empty())
 			continue;
 		IRCMessage msg = Message::parse(line);
@@ -117,7 +117,7 @@ void Server::HandlePollout(int fd) {
 		return;
 
 	const std::string& buf = client->getSendBuffer();
-	ssize_t sent = send(fd, buf.c_str(), buf.size(), 0);
+	const ssize_t sent = send(fd, buf.c_str(), buf.size(), 0);
 	if (sent > 0)
 		client->eraseSendBuffer(static_cast<size_t>(sent));
 }
@@ -148,7 +148,8 @@ void	Server::SendReply(Client& client, const std::string& numeric, const std::st
 	std::string nick = client.getNickname();
 	if (nick.empty())
 		nick = "*";
-	std::string reply = ":" + Global::ServerName + " " + numeric + " " + nick + " " + params + "\r\n";
+	const std::string reply = ":" + Global::ServerName + " " + numeric
+    + " " + nick + " " + params + "\r\n";
 	SendToClient(client.getFd(), reply);
 }
 
@@ -181,7 +182,7 @@ void	Server::RemoveChannel(const std::string& name) {
 }
 
 void	Server::RemoveClientFromAllChannels(Client* client, const std::string& quit_msg) {
-	std::string msg = ":" + client->getPrefix() + " QUIT :" + quit_msg + "\r\n";
+	const std::string msg = ":" + client->getPrefix() + " QUIT :" + quit_msg + "\r\n";
 	std::vector<std::string> to_remove;
 
 	for (std::map<std::string, Channel>::iterator it = channels_.begin(); it != channels_.end(); ++it) {
@@ -198,7 +199,7 @@ void	Server::RemoveClientFromAllChannels(Client* client, const std::string& quit
 
 void	Server::BroadcastNickChange(Client* client, const std::string& oldPrefix,
 									const std::string& newNick) {
-	std::string msg = ":" + oldPrefix + " NICK " + newNick + "\r\n";
+	const std::string msg = ":" + oldPrefix + " NICK " + newNick + "\r\n";
 	std::set<int> notified;
 
 	for (std::map<std::string, Channel>::iterator it = channels_.begin(); it != channels_.end(); ++it) {
