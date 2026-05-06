@@ -81,7 +81,7 @@ endif
 
 #? Default Make
 .ONESHELL:
-all: | info directories config.h $(TARGETDIR)/$(NAME)
+all: | info directories $(TARGETDIR)/$(NAME)
 	@printf "\n\033[1;92mBuild complete in \033[92m(\033[97m$$($(DATE_CMD) -d @$$(expr $$(date +%s 2>/dev/null || echo "0") - $(TIMESTAMP) 2>/dev/null) -u +%Mm:%Ss 2>/dev/null | sed 's/^00m://' || echo "unknown")\033[92m)\033[0m\n"
 
 ifneq ($(QUIET),true)
@@ -124,15 +124,15 @@ directories:
 	@echo 0 > $(BUILDDIR)/.progress_count
 
 #? Generate config.h from template
-config.h: $(BUILDDIR)/config.h
+# config.h: $(BUILDDIR)/config.h
 
-$(BUILDDIR)/config.h: $(SRCDIR)/config.h.in | directories
-	@$(QUIET) || printf "\033[1mConfiguring $(BUILDDIR)/config.h\033[0m\n"
-	@sed -e 's|@GIT_COMMIT@|$(GIT_COMMIT)|g' \
-	     -e 's|@CONFIGURE_COMMAND@|$(CONFIGURE_COMMAND)|g' \
-	     -e 's|@COMPILER@|$(CXX)|g' \
-	     -e 's|@COMPILER_VERSION@|$(CXX_VERSION)|g' \
-	     $< > $@
+# $(BUILDDIR)/config.h: $(SRCDIR)/config.h.in | directories
+# 	@$(QUIET) || printf "\033[1mConfiguring $(BUILDDIR)/config.h\033[0m\n"
+# 	@sed -e 's|@GIT_COMMIT@|$(GIT_COMMIT)|g' \
+# 	     -e 's|@CONFIGURE_COMMAND@|$(CONFIGURE_COMMAND)|g' \
+# 	     -e 's|@COMPILER@|$(CXX)|g' \
+# 	     -e 's|@COMPILER_VERSION@|$(CXX_VERSION)|g' \
+# 	     $< > $@
 
 #? Link
 .ONESHELL:
@@ -145,7 +145,7 @@ $(TARGETDIR)/$(NAME): $(OBJECTS) | directories
 
 #? Compile
 .ONESHELL:
-$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT) | directories config.h
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT) | directories
 	@TSTAMP=$$(date +%s 2>/dev/null || echo "0")
 	@$(QUIET) || printf "\033[1;97mCompiling $<\033[0m\n"
 	@$(VERBOSE) || printf "$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<\n"

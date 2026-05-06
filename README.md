@@ -247,8 +247,6 @@ PART #test :Goodbye
 QUIT :Bye
 ```
 
-See [DEV_DOC.md](DEV_DOC.md) for the full development documentation.
-
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
