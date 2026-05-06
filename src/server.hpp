@@ -25,10 +25,7 @@
 class Server {
 	public:
 		Server() {serSocketFd_ = -1;}
-		Server(int port, const std::string& password) {
-			port_ = port;
-			password_ = password;
-
+		Server(int port, const std::string& password) : port_(port), password_(password) {
 			std::cout << "Server Config" << std::endl;
 			std::cout << "PORT:\t\t" << port_ << std::endl;
 			std::cout << "PASSWORD:\t" << password_ << std::endl;
