@@ -40,7 +40,7 @@ class Server {
 		void		ReceiveNewData(int fd);
 		void		HandlePollout(int fd);
 
-		static void	signalHandler(int signum);
+		static void	signalHandler(int);
 
 		void		setPort(int port){port_ = port;};
 		int			getPort(){return port_;};

@@ -10,8 +10,7 @@ void	Server::clearClients(int fd) {
 	clients_.erase(fd);
 }
 
-void	Server::signalHandler(int signum) {
-	(void)signum;
+void	Server::signalHandler(int) {
 	std::cout << std::endl << "Signal Received!" << std::endl;
 	Server::signal_ = true;
 }
