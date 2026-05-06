@@ -105,6 +105,12 @@ MODE #channel +itk-o secretkey nick
 MODE #channel +kl secret 10
 ```
 
+## Resources
+
+- [RFC 1459 - Internet Relay Chat Protocol](https://tools.ietf.org/html/rfc1459)
+- [RFC 2812 - IRC Client Protocol](https://tools.ietf.org/html/rfc2812)
+- [Modern IRC Client Protocol](https://modern.ircdocs.horse/)
+
 ## Authentication Flow
 
 ```
