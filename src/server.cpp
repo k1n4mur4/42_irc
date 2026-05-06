@@ -95,7 +95,6 @@ void Server::ReceiveNewData(int fd) {
 	}
 
 	buff[bytes] = '\0';
-	std::cout << YEL << "Client <" << fd << "> Data: " << WHI << buff;
 
 	Client* client = FindClientByFd(fd);
 	if (!client)
@@ -106,6 +105,7 @@ void Server::ReceiveNewData(int fd) {
 		const std::string line = client->extractLine();
 		if (line.empty())
 			continue;
+    std::cout << YEL << "Client <" << fd << "> Data: " << WHI << line << std::endl;
 		IRCMessage msg = Message::parse(line);
 		Command::execute(*this, *client, msg);
     if (!FindClientByFd(fd))
