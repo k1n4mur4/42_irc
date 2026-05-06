@@ -466,8 +466,6 @@ static void cmd_mode(Server& server, Client& client, const IRCMessage& msg)
 			oss << chan->getUserLimit();
 			mode_params += " " + oss.str();
 		}
-		if (modes == "+")
-			modes = "+";
 		server.SendReply(client, "324", target + " " + modes + mode_params);
 		return;
 	}
