@@ -74,7 +74,6 @@ static void cmd_nick(Server& server, Client& client, const IRCMessage& msg)
 		return;
 	}
 	std::string oldPrefix = client.getPrefix();
-	std::string oldNick = client.getNickname();
 	client.setNickname(nick);
 	if (client.isRegistered()) {
 		std::string nick_msg = ":" + oldPrefix + " NICK " + nick + "\r\n";
