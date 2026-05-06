@@ -113,6 +113,9 @@ void Server::ReceiveNewData(int fd)
 			continue;
 		IRCMessage msg = Message::parse(line);
 		Command::execute(*this, *client, msg);
+		client = FindClientByFd(fd);
+		if (!client)
+			return;
 	}
 }
 
