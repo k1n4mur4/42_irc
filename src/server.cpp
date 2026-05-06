@@ -240,15 +240,21 @@ void Server::ServerInit() {
 			throw(std::runtime_error("poll() failed"));
 
 		for (size_t i = 0; i < fds_.size(); i++) {
-			if (fds_[i].revents & POLLIN) {
-				if (fds_[i].fd == serSocketFd_)
+      const int fd = fds_[i].fd;
+      const short revents = fds_[i].revents;
+
+			if (revents & POLLIN) {
+				if (fd == serSocketFd_)
 					AcceptNewClient();
 				else
-					ReceiveNewData(fds_[i].fd);
+					ReceiveNewData(fd);
 			}
-			if (i < fds_.size() && (fds_[i].revents & POLLOUT)) {
-				HandlePollout(fds_[i].fd);
-			}
+
+      if (fd != serSocketFd_ && !FindClientByFd(fd))
+        continue;
+
+			if (revents & POLLOUT)
+				HandlePollout(fd);
 		}
 	}
 	closeFds();
