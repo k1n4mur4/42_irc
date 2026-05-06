@@ -32,10 +32,6 @@ class Server {
 		}
 
 		void		ServerInit();
-		void		SerSocket();
-		void		AcceptNewClient();
-		void		ReceiveNewData(int fd);
-		void		HandlePollout(int fd);
 
 		static void	signalHandler(int);
 
@@ -48,8 +44,7 @@ class Server {
 		void		setSignal(bool signal) { signal_ = signal; };
 		bool		getSignal() const { return signal_; };
 
-		void		closeFds();
-		void		clearClients(int fd);
+    void		closeFds();
 
 		void		SendToClient(int fd, const std::string& message);
 		void		SendReply(Client& client, const std::string& numeric, const std::string& params);
@@ -60,10 +55,18 @@ class Server {
 		Channel*	FindChannel(const std::string& name);
 		Channel*	FindOrCreateChannel(const std::string& name);
 		void		RemoveChannel(const std::string& name);
-		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
-		void		BroadcastNickChange(Client* client, const std::string& oldPrefix, const std::string& newNick);
+    void		BroadcastNickChange(Client* client, const std::string& oldPrefix, const std::string& newNick);
 
 	private:
+    void		SerSocket();
+		void		AcceptNewClient();
+		void		ReceiveNewData(int fd);
+		void		HandlePollout(int fd);
+
+    void		clearClients(int fd);
+
+		void		RemoveClientFromAllChannels(Client* client, const std::string& quit_msg);
+
 		int							port_;
 		std::string					password_;
 		int							serSocketFd_;
