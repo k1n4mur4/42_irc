@@ -1,7 +1,7 @@
 #include "ft_irc.hpp"
 
 void	Server::clearClients(int fd) {
-	for(size_t i = 0; i < fds_.size(); i++){
+	for(size_t i = 0; i < fds_.size(); i++) {
 		if (fds_[i].fd == fd) {
 			fds_.erase(fds_.begin() + i);
 			break;
@@ -16,11 +16,11 @@ void	Server::signalHandler(int) {
 }
 
 void	Server::closeFds() {
-	for (std::map<int, Client>::iterator it = clients_.begin(); it != clients_.end(); ++it){
+	for (std::map<int, Client>::iterator it = clients_.begin(); it != clients_.end(); ++it) {
 		std::cout << RED << "Client <" << it->first << "> Disconnected" << WHI << std::endl;
 		close(it->first);
 	}
-	if (serSocketFd_ != -1){
+	if (serSocketFd_ != -1) {
 		std::cout << RED << "Server <" << serSocketFd_ << "> Disconnected" << WHI << std::endl;
 		close(serSocketFd_);
 	}
@@ -38,7 +38,7 @@ void	Server::SerSocket() {
 		throw(std::runtime_error("failed to create socket"));
 
 	int en = 1;
-	if(setsockopt(serSocketFd_, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
+	if (setsockopt(serSocketFd_, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
 		throw(std::runtime_error("failed to set option (SO_REUSEADDR) on socket"));
 	if (fcntl(serSocketFd_, F_SETFL, O_NONBLOCK) == -1)
 		throw(std::runtime_error("failed to set option (O_NONBLOCK) on socket"));
@@ -148,8 +148,7 @@ void	Server::SendReply(Client& client, const std::string& numeric, const std::st
 	std::string nick = client.getNickname();
 	if (nick.empty())
 		nick = "*";
-	std::string reply = ":" + Global::ServerName + " " + numeric + " " + nick
-						+ " " + params + "\r\n";
+	std::string reply = ":" + Global::ServerName + " " + numeric + " " + nick + " " + params + "\r\n";
 	SendToClient(client.getFd(), reply);
 }
 
